@@ -44,13 +44,21 @@ class OrderController extends Controller
         return back()->with('success', 'Pesanan berhasil dikonfirmasi');
     }
 
-    public function track(Order $order)
+    public function track($id)
     {
-        // Pastikan user hanya bisa melacak pesanannya sendiri
-        if ($order->user_id !== Auth::id()) {
-            abort(403);
-        }
+        $order = Order::findOrFail($id);
+        $whatsappNumber = env('WHATSAPP_NUMBER', '6281234567890');
 
-        return view('orders.track', compact('order'));
+        // Buat pesan WhatsApp
+        $message = "Halo Admin AhlanBoys, saya ingin konfirmasi pesanan:\n"
+            . "No. Pesanan: " . $order->invoice_number . "\n"
+            . "Total: Rp " . number_format($order->total_amount, 0, ',', '.') . "\n"
+            . "Nama: " . $order->user->name;
+
+        return view('orders.track', [
+            'order' => $order,
+            'whatsappNumber' => $whatsappNumber,
+            'message' => $message
+        ]);
     }
 }

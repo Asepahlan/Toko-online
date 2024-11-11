@@ -190,8 +190,11 @@
                     <i class="bi bi-arrow-left me-2"></i>Kembali
                 </a>
                 @if($order->status === 'pending')
-                    <a href="https://wa.me/6285215142110" class="btn btn-success" target="_blank">
-                        <i class="bi bi-whatsapp me-2"></i>Konfirmasi Pembayaran
+                    <a
+                        href="https://wa.me/{{ $whatsappNumber }}?text={{ urlencode($message) }}"
+                        class="btn btn-success"
+                    >
+                        <i class="fab fa-whatsapp"></i> Konfirmasi via WhatsApp
                     </a>
                 @endif
             </div>

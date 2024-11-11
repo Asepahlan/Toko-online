@@ -21,6 +21,9 @@ Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
 
+// Tambahkan route untuk home
+Route::get('/home', [HomeController::class, 'index'])->name('home');
+
 // Route yang memerlukan autentikasi
 Route::middleware('auth')->group(function () {
     // Profile Routes
@@ -49,9 +52,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('orders', AdminOrderController::class);
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::patch('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
-    Route::resource('users', AdminUserController::class);
+    Route::resource('users', AdminUserController::class)->except(['destroy']);
     Route::patch('/products/{product}/update-status', [AdminProductController::class, 'updateStatus'])
         ->name('products.update-status');
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::patch('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 });
 
 Route::get('/admin/reports/sales', [AdminController::class, 'exportSalesReport'])
@@ -59,4 +65,9 @@ Route::get('/admin/reports/sales', [AdminController::class, 'exportSalesReport']
     ->middleware(['auth', 'admin']);
 
 Auth::routes();
+
+// Route untuk halaman utama
+Route::get('/', function () {
+    return view('welcome');
+})->name('welcome');
 

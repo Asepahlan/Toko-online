@@ -17,82 +17,147 @@
     <div class="row">
         <!-- Sidebar Filter -->
         <div class="col-lg-3 mb-4">
-            <div class="card border-0 shadow-sm">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Filter</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title mb-4">Filter</h5>
-                    <form action="{{ route('products') }}" method="GET">
-                        <!-- Search -->
-                        <div class="mb-4">
+                    <form id="filterForm" action="{{ route('products') }}" method="GET">
+                        <!-- Pencarian -->
+                        <div class="mb-3">
                             <label class="form-label">Cari Produk</label>
                             <div class="input-group">
-                                <input type="text"
-                                       name="search"
-                                       class="form-control"
-                                       placeholder="Nama produk..."
-                                       value="{{ request('search') }}">
-                                <button type="submit" class="btn btn-primary">
+                                <input type="text" class="form-control" name="search"
+                                       value="{{ request('search') }}"
+                                       placeholder="Nama produk...">
+                                <button class="btn btn-primary" type="submit">
                                     <i class="bi bi-search"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Kategori -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Kategori</label>
-                            @foreach($categories as $category)
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox"
-                                           name="categories[]"
-                                           value="{{ $category->id }}"
-                                           id="category{{ $category->id }}"
-                                           {{ in_array($category->id, request('categories', [])) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="category{{ $category->id }}">
-                                        {{ $category->name }}
-                                        <span class="badge bg-light text-dark">{{ $category->products_count }}</span>
-                                    </label>
-                                </div>
-                            @endforeach
+                        <!-- Kategori dengan dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label">Kategori</label>
+                            <div class="dropdown w-100">
+                                <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center"
+                                        type="button"
+                                        data-bs-toggle="dropdown">
+                                    <span>
+                                        <i class="bi bi-tag-fill me-2"></i>
+                                        Kategori:
+                                        <span class="fw-medium">
+                                            {{ request('category') ? ($categories->firstWhere('id', request('category'))->name ?? 'Semua') : 'Semua' }}
+                                        </span>
+                                    </span>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li>
+                                        <a href="{{ route('products', request()->except('category')) }}"
+                                           class="dropdown-item {{ !request('category') ? 'active' : '' }}">
+                                            <i class="bi bi-collection me-2"></i>
+                                            Semua Kategori
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    @foreach($categories as $category)
+                                        <li>
+                                            <a href="{{ route('products', array_merge(request()->except('category'), ['category' => $category->id])) }}"
+                                               class="dropdown-item {{ request('category') == $category->id ? 'active' : '' }}">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span>
+                                                        <i class="bi bi-{{ $category->icon ?? 'tag' }} me-2"></i>
+                                                        {{ $category->name }}
+                                                    </span>
+                                                    <span class="badge bg-light text-dark">{{ $category->products_count }}</span>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
                         </div>
 
-                        <!-- Harga -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Rentang Harga</label>
+                        <!-- Rentang Harga -->
+                        <div class="mb-3">
+                            <label class="form-label">Rentang Harga</label>
                             <div class="row g-2">
-                                <div class="col">
-                                    <input type="number"
-                                           class="form-control"
-                                           name="min_price"
-                                           placeholder="Min"
-                                           value="{{ request('min_price') }}">
+                                <div class="col-6">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" class="form-control" name="min_price"
+                                               value="{{ request('min_price') }}" placeholder="Min">
+                                    </div>
                                 </div>
-                                <div class="col">
-                                    <input type="number"
-                                           class="form-control"
-                                           name="max_price"
-                                           placeholder="Max"
-                                           value="{{ request('max_price') }}">
+                                <div class="col-6">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Rp</span>
+                                        <input type="number" class="form-control" name="max_price"
+                                               value="{{ request('max_price') }}" placeholder="Max">
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Sort -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Urutkan</label>
-                            <select name="sort" class="form-select">
-                                <option value="latest" {{ request('sort') === 'latest' ? 'selected' : '' }}>Terbaru</option>
-                                <option value="price_low" {{ request('sort') === 'price_low' ? 'selected' : '' }}>Harga Terendah</option>
-                                <option value="price_high" {{ request('sort') === 'price_high' ? 'selected' : '' }}>Harga Tertinggi</option>
-                                <option value="name_asc" {{ request('sort') === 'name_asc' ? 'selected' : '' }}>Nama A-Z</option>
-                                <option value="name_desc" {{ request('sort') === 'name_desc' ? 'selected' : '' }}>Nama Z-A</option>
-                            </select>
+                        <!-- Urutkan dengan dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label">Urutkan</label>
+                            <div class="dropdown w-100">
+                                <button class="btn btn-outline-secondary w-100 text-start d-flex justify-content-between align-items-center"
+                                        type="button"
+                                        data-bs-toggle="dropdown">
+                                    <span>
+                                        <i class="bi bi-sort-down me-2"></i>
+                                        Urutkan:
+                                        <span class="fw-medium">
+                                            @switch(request('sort', 'latest'))
+                                                @case('oldest')
+                                                    Terlama
+                                                    @break
+                                                @case('price_low')
+                                                    Termurah
+                                                    @break
+                                                @case('price_high')
+                                                    Termahal
+                                                    @break
+                                                @default
+                                                    Terbaru
+                                            @endswitch
+                                        </span>
+                                    </span>
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li>
+                                        <a href="{{ route('products', array_merge(request()->except('sort'), ['sort' => 'latest'])) }}"
+                                           class="dropdown-item {{ request('sort', 'latest') == 'latest' ? 'active' : '' }}">
+                                            <i class="bi bi-arrow-down-circle me-2"></i>Terbaru
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('products', array_merge(request()->except('sort'), ['sort' => 'price_low'])) }}"
+                                           class="dropdown-item {{ request('sort') == 'price_low' ? 'active' : '' }}">
+                                            <i class="bi bi-sort-numeric-down me-2"></i>Termurah
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('products', array_merge(request()->except('sort'), ['sort' => 'price_high'])) }}"
+                                           class="dropdown-item {{ request('sort') == 'price_high' ? 'active' : '' }}">
+                                            <i class="bi bi-sort-numeric-up me-2"></i>Termahal
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-funnel me-2"></i>Terapkan Filter
+                        <!-- Tombol Filter -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-funnel-fill me-1"></i> Terapkan Filter
                             </button>
                             <a href="{{ route('products') }}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle me-2"></i>Reset Filter
+                                <i class="bi bi-x-circle me-1"></i> Reset
                             </a>
                         </div>
                     </form>
@@ -213,5 +278,256 @@
         font-size: 1rem;
     }
 }
+
+/* Perbaikan tampilan filter */
+.btn-check + .btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 50px;
+}
+
+.btn-check:checked + .btn {
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .d-flex.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    .btn-check + .btn {
+        width: auto;
+        min-width: 80px;
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* Hover effects */
+.btn-check + .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-check:checked + .btn {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+/* Input number arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+/* Styling untuk dropdown */
+.dropdown-menu {
+    border: 0;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.dropdown-item {
+    padding: 0.625rem 1rem;
+    border-radius: 0.375rem;
+    color: #4B5563;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #F3F4F6;
+    color: #1F2937;
+    transform: translateX(4px);
+}
+
+.dropdown-item.active {
+    background-color: #EBF5FF;
+    color: #2563EB;
+    font-weight: 500;
+}
+
+.dropdown-divider {
+    margin: 0.5rem 0;
+    opacity: 0.1;
+}
+
+/* Animasi untuk chevron */
+.dropdown.show .bi-chevron-down {
+    transform: rotate(180deg);
+}
+
+.bi-chevron-down {
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Button styles */
+.btn-outline-secondary {
+    border-color: #E5E7EB;
+    color: #374151;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #F9FAFB;
+    border-color: #D1D5DB;
+}
+
+/* Badge styles */
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+}
+
+/* Input group styles */
+.input-group .form-control {
+    border-right: 0;
+}
+
+.input-group .btn {
+    border-left: 0;
+    background-color: #FFFFFF;
+}
+
+.input-group .btn:hover {
+    background-color: #F9FAFB;
+}
+
+/* Hover transitions */
+.dropdown-item, .btn {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .dropdown-item {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .badge {
+        padding: 0.2rem 0.5rem;
+    }
+}
+
+/* Styling untuk pills */
+.btn-check + .btn {
+    border-radius: 50px;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+}
+
+.btn-check:checked + .btn-outline-primary {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-check:checked + .btn-outline-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Input styling */
+.input-group-text {
+    background-color: #f8f9fa;
+    font-size: 0.875rem;
+}
+
+.form-control::placeholder {
+    font-size: 0.875rem;
+}
+
+/* Scrollable categories if too many */
+.d-flex.flex-wrap {
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-check + .btn {
+        font-size: 0.8125rem;
+        padding: 0.2rem 0.5rem;
+    }
+}
+
+/* Smooth scrollbar */
+.d-flex.flex-wrap::-webkit-scrollbar {
+    width: 4px;
+}
+
+.d-flex.flex-wrap::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.d-flex.flex-wrap::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.d-flex.flex-wrap::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Styling untuk label */
+.btn-sm {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 50px;
+    transition: all 0.2s;
+}
+
+.btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-sm.active {
+    transform: translateY(1px);
+    box-shadow: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .d-flex.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    .btn-sm {
+        font-size: 0.8125rem;
+        padding: 0.2rem 0.5rem;
+    }
+}
+
+/* Warna dan tampilan tombol */
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary,
+.btn-secondary {
+    transform: translateY(1px);
+    box-shadow: none;
+}
 </style>
+@endpush
+
+@push('scripts')
+<script>
+// Auto submit on radio change
+document.querySelectorAll('input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+
+// Format currency input
+document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('input', function() {
+        if (this.value < 0) this.value = 0;
+    });
+});
+</script>
 @endpush

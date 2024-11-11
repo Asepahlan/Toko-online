@@ -173,7 +173,7 @@
                                                 {{ $order->created_at->diffForHumans() }}
                                             </span>
                                             <span>
-                                                <i class="bi bi-currency-dollar me-1"></i>
+                                                Rp
                                                 {{ number_format($order->total_amount) }}
                                             </span>
                                         </div>

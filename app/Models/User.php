@@ -23,7 +23,8 @@ class User extends Authenticatable
         'password',
         'phone',
         'address',
-        'role'
+        'role',
+        'is_active'
     ];
 
     /**
@@ -44,6 +45,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_active' => 'boolean'
     ];
 
     /**
@@ -70,5 +72,25 @@ class User extends Authenticatable
     public function cartItems()
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    public function getIsProfileCompleteAttribute()
+    {
+        return !empty($this->name) &&
+               !empty($this->email) &&
+               !empty($this->phone) &&
+               !empty($this->address);
+    }
+
+    public function updateActiveStatus()
+    {
+        // Cek jika user sudah login dalam 30 hari terakhir
+        $lastActivity = $this->last_activity_at ?? $this->created_at;
+        $isRecentlyActive = $lastActivity->diffInDays(now()) < 30;
+
+        // Update status aktif
+        $this->update([
+            'is_active' => $isRecentlyActive
+        ]);
     }
 }

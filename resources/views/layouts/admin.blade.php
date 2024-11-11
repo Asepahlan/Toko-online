@@ -431,6 +431,10 @@
     </style>
 
     @stack('styles')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 </head>
 <body>
     <!-- Sidebar Overlay -->
@@ -594,6 +598,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Sidebar Toggle
         document.getElementById('sidebarToggle')?.addEventListener('click', function() {
@@ -622,19 +627,19 @@
         // Fix modal issues
         document.addEventListener('DOMContentLoaded', function() {
             const modals = document.querySelectorAll('.modal');
-            
+
             modals.forEach(modal => {
                 modal.addEventListener('show.bs.modal', function() {
                     document.body.style.overflow = 'hidden';
                 });
-                
+
                 modal.addEventListener('hidden.bs.modal', function() {
                     document.body.style.overflow = '';
                     document.body.classList.remove('modal-open');
                     const backdrop = document.querySelector('.modal-backdrop');
                     if (backdrop) backdrop.remove();
                 });
-                
+
                 // Prevent clicks inside modal from closing it
                 modal.querySelector('.modal-content')?.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -652,6 +657,58 @@
                 if (backdrop) backdrop.remove();
             }
         }
+
+        // Fungsi untuk menampilkan notifikasi
+        function showNotification(type, message) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            Toast.fire({
+                icon: type,
+                title: message
+            });
+        }
+
+        // Fungsi untuk konfirmasi hapus
+        function confirmDelete(title, text, callback) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    callback();
+                }
+            });
+        }
+
+        // Tampilkan notifikasi jika ada session flash
+        @if(session('success'))
+            showNotification('success', '{{ session('success') }}');
+        @endif
+
+        @if(session('error'))
+            showNotification('error', '{{ session('error') }}');
+        @endif
+
+        @if(session('warning'))
+            showNotification('warning', '{{ session('warning') }}');
+        @endif
     </script>
     @stack('scripts')
 </body>

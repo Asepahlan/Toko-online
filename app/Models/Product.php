@@ -19,12 +19,16 @@ class Product extends Model
         'image_url',
         'image',
         'category_id',
-        'is_active'
+        'is_active',
+        'is_featured',
+        'total_sales'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
+        'total_sales' => 'integer'
     ];
 
     protected static function boot()
@@ -45,5 +49,11 @@ class Product extends Model
     {
         return $query->where('is_active', true)
                     ->orderBy('created_at', 'desc');
+    }
+
+    public function scopeBestSellers($query)
+    {
+        return $query->where('is_active', true)
+                    ->orderBy('total_sales', 'desc');
     }
 }

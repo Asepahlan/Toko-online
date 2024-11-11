@@ -22,17 +22,26 @@ class AdminCategoryController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|max:255',
-            'description' => 'required'
+        $request->validate([
+            'name' => 'required|string|max:255|unique:categories',
+            'description' => 'nullable|string',
+            'icon' => 'nullable|string|max:50'
         ]);
 
-        $validated['slug'] = Str::slug($validated['name']);
+        try {
+            Category::create([
+                'name' => $request->name,
+                'slug' => Str::slug($request->name),
+                'description' => $request->description,
+                'icon' => $request->icon
+            ]);
 
-        Category::create($validated);
-
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil ditambahkan');
+            return redirect()->route('admin.categories.index')
+                ->with('success', 'Kategori berhasil ditambahkan');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan saat menambahkan kategori')
+                ->withInput();
+        }
     }
 
     public function edit(Category $category)
@@ -49,22 +58,35 @@ class AdminCategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|max:255',
-            'description' => 'required'
+            'description' => 'required',
+            'icon' => 'nullable|string|max:50'
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
 
-        $category->update($validated);
+        try {
+            $category->update($validated);
 
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Kategori berhasil diperbarui'
-            ]);
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Kategori berhasil diperbarui',
+                    'category' => $category
+                ]);
+            }
+
+            return redirect()->route('admin.categories.index')
+                ->with('success', 'Kategori berhasil diperbarui');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat memperbarui kategori'
+                ], 500);
+            }
+
+            return back()->with('error', 'Terjadi kesalahan saat memperbarui kategori');
         }
-
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Kategori berhasil diperbarui');
     }
 
     public function destroy(Category $category)
